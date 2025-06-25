@@ -1,7 +1,7 @@
 backend:
   name: github
-  repo: rajvirsinghbenipal/hugo-content
-  branch: pre-release
+  repo: rajvir-cms-bot/hugo-content
+  branch: main
   base_url: https://punjabi-news-admin.vercel.app
   auth_endpoint: /api/auth
 
