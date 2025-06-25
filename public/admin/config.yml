@@ -1,0 +1,27 @@
+backend:
+  name: github
+  # This is your CONTENT repository, NOT the CMS repository
+  repo: rajvirsinghbenipal/hugo-content
+  branch: pre-release
+  
+  # These two lines are the key for Vercel OAuth!
+  # They tell Decap to use your serverless functions for login.
+  base_url: https://YOUR_VERCEL_APP_URL_HERE
+  auth_endpoint: /api/auth
+
+publish_mode: editorial_workflow
+
+# The folder where Decap will save images in your CONTENT repo
+media_folder: "assets/uploads" 
+
+# Your collections start here
+collections:
+  - name: 'posts'
+    label: 'Posts'
+    folder: '_posts'
+    create: true
+    slug: '{{year}}-{{month}}-{{day}}-{{slug}}'
+    fields:
+      - { label: 'Title', name: 'title', widget: 'string' }
+      - { label: 'Publish Date', name: 'date', widget: 'datetime' }
+      - { label: 'Body', name: 'body', widget: 'markdown' }

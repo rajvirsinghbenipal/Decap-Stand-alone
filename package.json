@@ -1,16 +1,15 @@
 {
   "name": "decap-stand-alone",
   "version": "1.0.0",
-  "description": "A Git-based CMS for Static Site Generators",
+  "description": "Decap CMS with Vercel Auth",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "echo 'No start script needed for this project'"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "decap-cms": "^3.6.4",
-    "simple-oauth2": "^5.1.0"
+    "simple-oauth2": "^5.2.0"
   }
 }
