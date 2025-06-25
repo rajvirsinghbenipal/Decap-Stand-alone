@@ -1,4 +1,4 @@
-const { authorizationCode } = require('simple-oauth2');
+const { AuthorizationCode } = require('simple-oauth2');
 
 // This is the function that GitHub calls back to after the user logs in
 module.exports = async (req, res) => {

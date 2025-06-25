@@ -1,4 +1,4 @@
-const { authorizationCode } = require('simple-oauth2');
+const { AuthorizationCode } = require('simple-oauth2');
 
 // This is the function that starts the login process
 module.exports = (req, res) => {
