@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "decap-cms": "^3.6.4"
+    "decap-cms": "^3.6.4",
+    "simple-oauth2": "^5.1.0"
   }
 }
