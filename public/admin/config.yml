@@ -6,7 +6,7 @@ backend:
   
   # These two lines are the key for Vercel OAuth!
   # They tell Decap to use your serverless functions for login.
-  base_url: https://YOUR_VERCEL_APP_URL_HERE
+  base_url: https://punjabi-news-admin.vercel.app
   auth_endpoint: /api/auth
 
 publish_mode: editorial_workflow
