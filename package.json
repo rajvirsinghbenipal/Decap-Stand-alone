@@ -10,6 +10,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "simple-oauth2": "^5.2.0"
+    "simple-oauth2": "^5.1.0"
   }
 }
