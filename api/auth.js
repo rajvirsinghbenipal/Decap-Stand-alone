@@ -1,4 +1,4 @@
-const { AuthorizationCode } = require('simple-oauth2');
+const { AuthorizationCode } = require('simple-oauth2'); // <-- FIX #1: Capital 'A'
 
 // This is the function that starts the login process
 module.exports = (req, res) => {
@@ -14,13 +14,13 @@ module.exports = (req, res) => {
     }
   };
 
-  const client = new authorizationCode(config);
+  const client = new AuthorizationCode(config); // <-- FIX #2: Capital 'A'
 
   // We redirect the user to GitHub's authorization page
   const authorizationUri = client.authorizeURL({
-    redirect_uri: `https://${req.headers.host}/api/callback`,
-    scope: 'repo,user', // This scope allows Decap to read/write to the repo
-    state: '3(#0/!~' // A random string to prevent CSRF attacks
+    redirect_uri: `https://punjabi-news-admin.vercel.app/api/callback`,
+    scope: 'repo,user',
+    state: '3(#0/!~'
   });
 
   res.writeHead(302, { Location: authorizationUri });

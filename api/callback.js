@@ -1,4 +1,4 @@
-const { AuthorizationCode } = require('simple-oauth2');
+const { AuthorizationCode } = require('simple-oauth2'); // <-- FIX #1: Capital 'A'
 
 // This is the function that GitHub calls back to after the user logs in
 module.exports = async (req, res) => {
@@ -15,14 +15,12 @@ module.exports = async (req, res) => {
     }
   };
 
-  const client = new authorizationCode(config);
+  const client = new AuthorizationCode(config); // <-- FIX #2: Capital 'A'
 
   try {
-    // We exchange the temporary code for a permanent access token
     const accessToken = await client.getToken({ code });
     const token = accessToken.token.access_token;
 
-    // This HTML and script sends the token back to the Decap CMS window
     const response = `
       <!DOCTYPE html><html><head><meta charset="utf-8"><title>Authorizing...</title></head><body>
       <script>
