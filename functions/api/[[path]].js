@@ -1,31 +1,29 @@
-// This is the Cloudflare Worker version of our proxy.
 export async function onRequest(context) {
   try {
-    // Get the original request URL
-    const url = new URL(context.request.url);
-
-    // Construct the path to the GitHub API
-    // It takes the path after `/api/` from the incoming request
-    const githubPath = url.pathname.replace('/api/', '');
-    const githubUrl = `https://api.github.com/repos/rajvirsinghbenipal/hugo-content/${githubPath}`;
-
     // Get the secret PAT from Cloudflare's environment variables
     const pat = context.env.GITHUB_PAT;
-
     if (!pat) {
       return new Response('GITHUB_PAT environment variable not set', { status: 500 });
     }
+
+    // The magic happens here. We get the path parts from the URL.
+    // For a request like /api/github/contents/_posts/..., this will be ['contents', '_posts', ...]
+    const pathSegments = context.params.path || [];
+    const githubPath = pathSegments.join('/');
+
+    // Construct the correct, final GitHub API URL
+    const githubUrl = `https://api.github.com/repos/rajvirsinghbenipal/hugo-content/${githubPath}`;
 
     // Forward the request to GitHub, adding our secret token
     const response = await fetch(githubUrl, {
       method: context.request.method,
       headers: {
         'Authorization': `token ${pat}`,
-        'Content-Type': 'application/json',
+        'Content-Type': context.request.headers.get('Content-Type'),
         'Accept': 'application/vnd.github.v3+json',
-        'User-Agent': 'Cloudflare-Worker-Proxy' // GitHub API requires a User-Agent
+        'User-Agent': 'Cloudflare-Worker-Proxy'
       },
-      body: context.request.method !== 'GET' && context.request.method !== 'HEAD' ? context.request.body : undefined,
+      body: context.request.method.toUpperCase() !== 'GET' ? await context.request.text() : undefined,
     });
 
     // Return GitHub's response directly to the browser
