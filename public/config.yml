@@ -1,7 +1,6 @@
 backend:
   name: proxy
-  # IMPORTANT: Replace this with the final Vercel URL you will get after deploying.
-  proxy_url: https://punjabi-news-admin.vercel.app/api/github
+  proxy_url: https://punjabi-news-admin.pages.dev/api/github
   repo: rajvirsinghbenipal/hugo-content
   # IMPORTANT: Replace this with the branch you want to save to.
   branch: pre-release
