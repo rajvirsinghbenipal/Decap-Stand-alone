@@ -1,8 +1,5 @@
 {
-  "name": "my-decap-cms-final",
+  "name": "decap-cms-cloudflare",
   "version": "1.0.0",
-  "description": "A clean Decap CMS starter for Vercel",
-  "dependencies": {
-    "node-fetch": "^2.7.0"
-  }
+  "private": true
 }
