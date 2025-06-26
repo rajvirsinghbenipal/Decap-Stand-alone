@@ -1,0 +1,14 @@
+backend:
+  name: proxy
+  proxy_url: https://punjabi-news-admin.vercel.app/api/github
+  branch: pre-release
+
+media_folder: "assets/uploads"
+
+collections:
+  - name: "posts"
+    label: "Posts"
+    folder: "_posts"
+    create: true
+    fields:
+      - {label: "Title", name: "title", widget: "string"}

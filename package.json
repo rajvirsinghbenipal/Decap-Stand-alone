@@ -6,9 +6,6 @@
   "scripts": {
     "start": "echo 'No start script needed for this project'"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "node-fetch": "^2.7.0"
   }
