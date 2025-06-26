@@ -5,7 +5,6 @@ backend:
   base_url: https://punjabi-news-admin.vercel.app
   auth_endpoint: /api/auth
 
-
 # Using a minimal config to rule out any formatting errors
 media_folder: "assets/uploads"
 collections:
