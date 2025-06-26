@@ -1,11 +1,12 @@
 backend:
-  name: github
-  repo: rajvirsinghbenipal/hugo-content
+  # Tells Decap to use our Vercel proxy
+  name: proxy
+  # The URL of our API function on Vercel
+  proxy_url: https://punjabi-news-admin.vercel.app/api/github
+  # The branch to save content to
   branch: pre-release
-  base_url: https://punjabi-news-admin.vercel.app
-  auth_endpoint: /api/auth
 
-# Using a minimal config to rule out any formatting errors
+# The rest of your configuration is correct
 media_folder: "assets/uploads"
 collections:
   - name: "posts"
