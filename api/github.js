@@ -1,6 +1,6 @@
 const fetch = require('node-fetch');
 
-// This function is our secure proxy, now using module.exports
+// This is the correct proxy server code
 module.exports = async (req, res) => {
   // The full GitHub API URL to call
   const githubUrl = `https://api.github.com${req.url.replace('/api/github', '')}`;
@@ -9,8 +9,7 @@ module.exports = async (req, res) => {
     const response = await fetch(githubUrl, {
       method: req.method,
       headers: {
-        // Add the secret PAT from your environment variables
-        'Authorization': `token ${process.env.GITHUB_PAT}`,
+        'Authorization': `token ${process.env.GITHUB_PAT}`, // Uses your secret PAT
         'Content-Type': 'application/json',
         'Accept': 'application/vnd.github.v3+json',
       },
@@ -20,11 +19,11 @@ module.exports = async (req, res) => {
 
     const contentType = response.headers.get("content-type");
     if (contentType && contentType.indexOf("application/json") !== -1) {
-      const data = await response.json();
-      res.status(response.status).json(data);
+        const data = await response.json();
+        res.status(response.status).json(data);
     } else {
-      const textData = await response.text();
-      res.status(response.status).send(textData);
+        const textData = await response.text();
+        res.status(response.status).send(textData);
     }
 
   } catch (error) {
