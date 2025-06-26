@@ -1,6 +1,9 @@
 backend:
   name: proxy
+  # IMPORTANT: Replace this with the final Vercel URL you will get after deploying.
   proxy_url: https://punjabi-news-admin.vercel.app/api/github
+  repo: rajvirsinghbenipal/hugo-content
+  # IMPORTANT: Replace this with the branch you want to save to.
   branch: pre-release
 
 media_folder: "assets/uploads"
@@ -8,7 +11,9 @@ media_folder: "assets/uploads"
 collections:
   - name: "posts"
     label: "Posts"
+    # IMPORTANT: Make sure this path exists in your content repo.
     folder: "_posts"
     create: true
     fields:
       - {label: "Title", name: "title", widget: "string"}
+      - {label: "Body", name: "body", widget: "markdown"}

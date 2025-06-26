@@ -1,11 +1,7 @@
 {
-  "name": "decap-stand-alone",
+  "name": "my-decap-cms-final",
   "version": "1.0.0",
-  "description": "Decap CMS with Vercel Auth",
-  "main": "index.js",
-  "scripts": {
-    "start": "echo 'No start script needed for this project'"
-  },
+  "description": "A clean Decap CMS starter for Vercel",
   "dependencies": {
     "node-fetch": "^2.7.0"
   }
