@@ -1,3 +1,4 @@
+// This is the final, corrected Cloudflare Worker proxy code.
 export async function onRequest(context) {
   try {
     // Get the secret PAT from Cloudflare's environment variables
@@ -6,24 +7,34 @@ export async function onRequest(context) {
       return new Response('GITHUB_PAT environment variable not set', { status: 500 });
     }
 
-    // The magic happens here. We get the path parts from the URL.
-    // For a request like /api/github/contents/_posts/..., this will be ['contents', '_posts', ...]
+    // --- THIS IS THE CORRECTED LOGIC ---
+    // Get all parts of the path from the incoming request
+    // e.g., for /api/github/contents/_posts, this will be ['github', 'contents', '_posts']
     const pathSegments = context.params.path || [];
-    const githubPath = pathSegments.join('/');
+
+    // The real GitHub path is everything *after* the 'github' part
+    const githubPathSegments = pathSegments.slice(1);
+    let githubPath = githubPathSegments.join('/');
+
+    // Add a leading slash only if there is a path
+    if (githubPath) {
+      githubPath = '/' + githubPath;
+    }
+    // --- END OF CORRECTED LOGIC ---
 
     // Construct the correct, final GitHub API URL
-    const githubUrl = `https://api.github.com/repos/rajvirsinghbenipal/hugo-content/${githubPath}`;
+    const githubUrl = `https://api.github.com/repos/rajvirsinghbenipal/hugo-content${githubPath}`;
 
     // Forward the request to GitHub, adding our secret token
     const response = await fetch(githubUrl, {
       method: context.request.method,
       headers: {
         'Authorization': `token ${pat}`,
-        'Content-Type': context.request.headers.get('Content-Type'),
+        'Content-Type': 'application/json',
         'Accept': 'application/vnd.github.v3+json',
         'User-Agent': 'Cloudflare-Worker-Proxy'
       },
-      body: context.request.method.toUpperCase() !== 'GET' ? await context.request.text() : undefined,
+      body: context.request.method.toUpperCase() !== 'GET' ? context.request.body : undefined,
     });
 
     // Return GitHub's response directly to the browser
