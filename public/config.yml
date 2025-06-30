@@ -1,18 +1,26 @@
 backend:
   name: proxy
-  proxy_url: https://punjabi-news-admin.pages.dev/api/github
-  repo: rajvirsinghbenipal/hugo-content
-  # IMPORTANT: Replace this with the branch you want to save to.
-  branch: pre-release
+  proxy_url: http://localhost:3000/api/github
+  branch: main # Or pre-release, whichever you are using
 
+# --- THIS IS THE FIX ---
+# You must specify BOTH media_folder and public_folder.
 media_folder: "assets/uploads"
+public_folder: "assets/uploads"
+# --- END OF FIX ---
 
 collections:
-  - name: "posts"
-    label: "Posts"
-    # IMPORTANT: Make sure this path exists in your content repo.
-    folder: "_posts"
+  - label: "Blog in English"
+    name: "english_posts"
+    folder: "news"
     create: true
+    filter: { field: "language", value: "en" }
     fields:
-      - {label: "Title", name: "title", widget: "string"}
-      - {label: "Body", name: "body", widget: "markdown"}
+      - {
+          label: "Language",
+          name: "language",
+          widget: "select",
+          options: ["en", "es"],
+        }
+      - { label: "Title", name: "title", widget: "string" }
+      - { label: "Content", name: "body", widget: "markdown" }

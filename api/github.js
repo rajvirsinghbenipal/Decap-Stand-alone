@@ -1,40 +1,257 @@
-// const fetch = require('node-fetch');
+const fetch = require("node-fetch");
 
-// // This is the final, corrected proxy server code.
-// module.exports = async (req, res) => {
-//   // This part gets the path the CMS wants to access.
-//   let githubPath = req.url.replace('/api/github', '');
+const GITHUB_API_URL = "https://api.github.com/graphql";
+const REPO_OWNER = "rajvir-cms-bot";
+const REPO_NAME = "hugo-content";
+const REPO_NAME_WITH_OWNER = `${REPO_OWNER}/${REPO_NAME}`;
 
-//   // THIS IS THE FIX: If the path is just a slash, we make it an empty string
-//   // to avoid a trailing slash on the final URL, which GitHub's API rejects.
-//   if (githubPath === '/') {
-//     githubPath = '';
-//   }
+// --- Reusable helper function to make GraphQL requests ---
+async function makeGraphQLRequest(query, variables = {}) {
+  const response = await fetch(GITHUB_API_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.GITHUB_PAT}`,
+      "User-Agent": "decap-cms-local-proxy-graphql",
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({
+      query,
+      variables,
+    }),
+  });
 
-//   const githubUrl = `https://api.github.com/repos/rajvirsinghbenipal/hugo-content${githubPath}`;
-  
-//   try {
-//     const response = await fetch(githubUrl, {
-//       method: req.method,
-//       headers: {
-//         'Authorization': `token ${process.env.GITHUB_PAT}`,
-//         'Content-Type': 'application/json',
-//         'Accept': 'application/vnd.github.v3+json',
-//       },
-//       body: req.method !== 'GET' && req.method !== 'HEAD' && req.body ? JSON.stringify(req.body) : undefined,
-//     });
-    
-//     const contentType = response.headers.get("content-type");
-//     if (contentType && contentType.indexOf("application/json") !== -1) {
-//         const data = await response.json();
-//         res.status(response.status).json(data);
-//     } else {
-//         const textData = await response.text();
-//         res.status(response.status).send(textData);
-//     }
+  const data = await response.json();
 
-//   } catch (error) {
-//     console.error('Error in GitHub proxy:', error);
-//     res.status(500).json({ error: 'Failed to proxy request to GitHub' });
-//   }
-// };
+  if (response.status !== 200 || data.errors) {
+    console.error("GraphQL API Error:", data.errors || data);
+    const errorMessage = data.errors
+      ? data.errors.map((err) => err.message).join(", ")
+      : "Unknown GraphQL error";
+    throw new Error(
+      `GraphQL request failed with status ${response.status}: ${errorMessage}`
+    );
+  }
+
+  return data.data;
+}
+
+// --- Main proxy handler ---
+module.exports = async (req, res) => {
+  const { action, params } = req.body;
+
+  console.log("--- Decap CMS GraphQL Proxy Log ---");
+  console.log(`Action: ${action}`);
+  console.log("Parameters:", params);
+
+  try {
+    switch (action) {
+      case "entriesByFolder":
+      case "getMedia":
+        {
+          const folderPath =
+            action === "getMedia" ? params.mediaFolder : params.folder;
+          const expression = `${params.branch}:${folderPath}`;
+
+          const query = `
+            query getContents($owner: String!, $repo: String!, $expression: String!) {
+              repository(owner: $owner, name: $repo) {
+                object(expression: $expression) {
+                  ... on Tree {
+                    entries {
+                      name
+                      type
+                      oid
+                      path
+                      object {
+                        ... on Blob {
+                          byteSize
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          `;
+          const variables = {
+            owner: REPO_OWNER,
+            repo: REPO_NAME,
+            expression: expression,
+          };
+
+          const data = await makeGraphQLRequest(query, variables);
+
+          const treeObject = data.repository.object;
+          const entries = treeObject ? treeObject.entries : null;
+
+          // --- FINAL FIX: Simplify the mapping to only required fields ---
+          const files = entries
+            ? entries
+                .filter((entry) => entry)
+                .map((entry) => ({
+                  // Decap CMS requires a 'path' and a 'name'. 'sha' and 'id' are also used.
+                  path: entry.path,
+                  name: entry.name,
+                  id: entry.oid,
+                  sha: entry.oid,
+                  // The 'size' and 'type' fields are useful but can be simplified if causing issues.
+                  size: entry.object ? entry.object.byteSize : undefined,
+                }))
+            : [];
+
+          res.status(200).json(files);
+        }
+        break;
+
+      case "getEntry":
+        {
+          const expression = `${params.branch}:${params.path}`;
+          const query = `
+            query getFileContent($owner: String!, $repo: String!, $expression: String!) {
+              repository(owner: $owner, name: $repo) {
+                object(expression: $expression) {
+                  ... on Blob {
+                    oid
+                    text
+                    byteSize
+                  }
+                }
+              }
+            }
+          `;
+          const variables = {
+            owner: REPO_OWNER,
+            repo: REPO_NAME,
+            expression: expression,
+          };
+
+          const data = await makeGraphQLRequest(query, variables);
+
+          const fileData = data.repository.object;
+          if (!fileData) {
+            res.status(404).json({ message: "File not found." });
+            return;
+          }
+
+          res.status(200).json({
+            id: fileData.oid,
+            sha: fileData.oid,
+            content: Buffer.from(fileData.text).toString("base64"),
+            path: params.path,
+            size: fileData.byteSize,
+          });
+        }
+        break;
+
+      case "persistEntry":
+        {
+          const file = params.dataFiles[0];
+          const queryGetOID = `
+            query getBranchOID($owner: String!, $repo: String!, $branch: String!) {
+              repository(owner: $owner, name: $repo) {
+                ref(qualifiedName: $branch) {
+                  target {
+                    oid
+                  }
+                }
+              }
+            }
+          `;
+          const variablesGetOID = {
+            owner: REPO_OWNER,
+            repo: REPO_NAME,
+            branch: params.branch,
+          };
+
+          const branchData = await makeGraphQLRequest(
+            queryGetOID,
+            variablesGetOID
+          );
+          const branchOID = branchData.repository.ref.target.oid;
+
+          const mutation = `
+            mutation createCommit($branch: String!, $oid: GitObjectID!, $message: String!, $additions: [FileAddition!]) {
+              createCommitOnBranch(
+                input: {
+                  branch: {
+                    repositoryNameWithOwner: "${REPO_NAME_WITH_OWNER}",
+                    branchName: $branch
+                  }
+                  expectedHeadOid: $oid
+                  message: { headline: $message }
+                  fileChanges: { additions: $additions }
+                }
+              ) {
+                commit {
+                  oid
+                }
+              }
+            }
+          `;
+          const mutationVariables = {
+            branch: params.branch,
+            oid: branchOID,
+            message: params.options.commitMessage,
+            additions: [
+              {
+                path: file.path,
+                contents: Buffer.from(file.raw).toString("base64"),
+              },
+            ],
+          };
+
+          await makeGraphQLRequest(mutation, mutationVariables);
+
+          const getEntryQuery = `
+            query getSavedEntry($owner: String!, $repo: String!, $expression: String!) {
+              repository(owner: $owner, name: $repo) {
+                object(expression: $expression) {
+                  ... on Blob {
+                    oid
+                    text
+                    byteSize
+                  }
+                }
+              }
+            }
+          `;
+          const getEntryVariables = {
+            owner: REPO_OWNER,
+            repo: REPO_NAME,
+            expression: `${params.branch}:${file.path}`,
+          };
+
+          const savedData = await makeGraphQLRequest(
+            getEntryQuery,
+            getEntryVariables
+          );
+          const savedFileData = savedData.repository.object;
+
+          if (!savedFileData) {
+            res
+              .status(500)
+              .json({ error: "Failed to fetch saved entry metadata." });
+            return;
+          }
+
+          res.status(200).json({
+            id: savedFileData.oid,
+            sha: savedFileData.oid,
+            content: Buffer.from(savedFileData.text).toString("base64"),
+            path: file.path,
+            size: savedFileData.byteSize,
+          });
+        }
+        break;
+
+      default:
+        res.status(400).json({ error: `Unsupported action: ${action}` });
+    }
+  } catch (error) {
+    console.error("Error in GraphQL proxy:", error);
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to proxy request to GitHub" });
+  }
+};
