@@ -5,6 +5,143 @@ const REPO_OWNER = "rajvir-cms-bot";
 const REPO_NAME = "hugo-content";
 const REPO_NAME_WITH_OWNER = `${REPO_OWNER}/${REPO_NAME}`;
 
+// --- HARDCODED DATA FOR DEBUGGING ---
+const HARDCODED_NEWS_ENTRIES = [
+  {
+    "path": "news/a.md",
+    "name": "a.md",
+    "id": "cd09d9553a588ea42eb8d15e6c50f9784b4134dd",
+    "sha": "cd09d9553a588ea42eb8d15e6c50f9784b4134dd",
+    "size": 23,
+    "isDir": false
+  },
+  {
+    "path": "news/cc.md",
+    "name": "cc.md",
+    "id": "2a35a1f5b599ffcff48dd2135f05ced2c9597c59",
+    "sha": "2a35a1f5b599ffcff48dd2135f05ced2c9597c59",
+    "size": 22,
+    "isDir": false
+  },
+  {
+    "path": "news/cs.md",
+    "name": "cs.md",
+    "id": "5615af7e5beeaef8940bd44e3e38a1d10ed7197e",
+    "sha": "5615af7e5beeaef8940bd44e3e38a1d10ed7197e",
+    "size": 22,
+    "isDir": false
+  },
+  {
+    "path": "news/csa.md",
+    "name": "csa.md",
+    "id": "6c63074bfb766a2aaf97c2115cfa3586ae6cefbd",
+    "sha": "6c63074bfb766a2aaf97c2115cfa3586ae6cefbd",
+    "size": 24,
+    "isDir": false
+  },
+  {
+    "path": "news/ds.md",
+    "name": "ds.md",
+    "id": "1ca41c003842cd9b40c86e920b8d378474ffcb14",
+    "sha": "1ca41c003842cd9b40c86e920b8d378474ffcb14",
+    "size": 36,
+    "isDir": false
+  },
+  {
+    "path": "news/fwef.md",
+    "name": "fwef.md",
+    "id": "adbb68845c9a7b0486df1498588cbc6284182fb1",
+    "sha": "adbb68845c9a7b0486df1498588cbc6284182fb1",
+    "size": 37,
+    "isDir": false
+  },
+  {
+    "path": "news/g.md",
+    "name": "g.md",
+    "id": "a57c0dd5d7adfa5c77a024c259d2cc33bcdf485c",
+    "sha": "a57c0dd5d7adfa5c77a024c259d2cc33bcdf485c",
+    "size": 21,
+    "isDir": false
+  },
+  {
+    "path": "news/gheloji.md",
+    "name": "gheloji.md",
+    "id": "a91a16b873883a99451ee6ea922ea0fc575e8eb5",
+    "sha": "a91a16b873883a99451ee6ea922ea0fc575e8eb5",
+    "size": 33,
+    "isDir": false
+  },
+  {
+    "path": "news/jb.md",
+    "name": "jb.md",
+    "id": "600652a1463b4dde07d87bbc92a381983fcbaec0",
+    "sha": "600652a1463b4dde07d87bbc92a381983fcbaec0",
+    "size": 37,
+    "isDir": false
+  },
+  {
+    "path": "news/placeholder.md",
+    "name": "placeholder.md",
+    "id": "cd682adc4a29b781279aac1db4ca0c69d78e563a",
+    "sha": "cd682adc4a29b781279aac1db4ca0c69d78e563a",
+    "size": 64,
+    "isDir": false
+  },
+  {
+    "path": "news/scs.md",
+    "name": "scs.md",
+    "id": "90d5fb5da3d48d7d9d566bffbfbe4d9c6521897b",
+    "sha": "90d5fb5da3d48d7d9d566bffbfbe4d9c6521897b",
+    "size": 23,
+    "isDir": false
+  },
+  {
+    "path": "news/sdad.md",
+    "name": "sdad.md",
+    "id": "f6d86493563e16a3857aa320d69b0c5cd7b797c9",
+    "sha": "f6d86493563e16a3857aa320d69b0c5cd7b797c9",
+    "size": 25,
+    "isDir": false
+  },
+  {
+    "path": "news/sv.md",
+    "name": "sv.md",
+    "id": "580a278b062897245811414de07021ad1e7b51e3",
+    "sha": "580a278b062897245811414de07021ad1e7b51e3",
+    "size": 24,
+    "isDir": false
+  },
+  {
+    "path": "news/v.md",
+    "name": "v.md",
+    "id": "ac1859f83f43d8f2dbaca5458e913dc7cfa3fe47",
+    "sha": "ac1859f83f43d8f2dbaca5458e913dc7cfa3fe47",
+    "size": 22,
+    "isDir": false
+  },
+  {
+    "path": "news/x.md",
+    "name": "x.md",
+    "id": "9d4dd26b61e508b01a583a699fb148cae3d2c0fb",
+    "sha": "9d4dd26b61e508b01a583a699fb148cae3d2c0fb",
+    "size": 35,
+    "isDir": false
+  }
+];
+
+const HARDCODED_MEDIA_ENTRIES = [
+    {
+        "path": "assets/uploads/readme",
+        "name": "readme",
+        "id": "d478889c64fd804256ad2b3c0770ef6bb3d6dc75",
+        "sha": "d478889c64fd804256ad2b3c0770ef6bb3d6dc75",
+        "size": 6,
+        "isDir": false
+    }
+];
+// --- END OF HARDCODED DATA ---
+
+
 // --- Reusable helper function to make GraphQL requests ---
 async function makeGraphQLRequest(query, variables = {}) {
   const response = await fetch(GITHUB_API_URL, {
@@ -33,6 +170,7 @@ async function makeGraphQLRequest(query, variables = {}) {
     );
   }
 
+  console.log(data.data, 'tarun'); // Corrected console.log
   return data.data;
 }
 
@@ -40,11 +178,24 @@ async function makeGraphQLRequest(query, variables = {}) {
 module.exports = async (req, res) => {
   const { action, params } = req.body;
 
-  console.log("--- Decap CMS GraphQL Proxy Log ---");
-  console.log(`Action: ${action}`);
-  console.log("Parameters:", params);
+  // console.log("--- Decap CMS GraphQL Proxy Log ---"); // Keep these if needed for general flow
+  // console.log(`Action: ${action}`);
+  // console.log("Parameters:", params);
 
   try {
+    // --- ADDED HARDCODING LOGIC HERE (INSIDE module.exports) ---
+    if (action === "entriesByFolder" && params.folder === "news") {
+        console.log("--- HARDCODED RESPONSE SERVED FOR 'news' FOLDER ---");
+        res.status(200).json(HARDCODED_NEWS_ENTRIES);
+        return; // Exit function after sending hardcoded response
+    }
+    if (action === "getMedia" && params.mediaFolder === "assets/uploads") {
+        console.log("--- HARDCODED RESPONSE SERVED FOR 'assets/uploads' FOLDER ---");
+        res.status(200).json(HARDCODED_MEDIA_ENTRIES); // Use specific hardcoded data for media
+        return; // Exit function after sending hardcoded response
+    }
+    // --- END OF HARDCODING LOGIC ---
+
     switch (action) {
       case "entriesByFolder":
       case "getMedia":
@@ -80,23 +231,22 @@ module.exports = async (req, res) => {
             expression: expression,
           };
 
-          const data = await makeGraphQLRequest(query, variables);
+          // This call will only happen if the hardcoding conditions above are NOT met
+          const data = await makeGraphQLRequest(query, variables); 
 
           const treeObject = data.repository.object;
           const entries = treeObject ? treeObject.entries : null;
 
-          // --- FINAL FIX: Simplify the mapping to only required fields ---
           const files = entries
             ? entries
                 .filter((entry) => entry)
                 .map((entry) => ({
-                  // Decap CMS requires a 'path' and a 'name'. 'sha' and 'id' are also used.
                   path: entry.path,
                   name: entry.name,
                   id: entry.oid,
                   sha: entry.oid,
-                  // The 'size' and 'type' fields are useful but can be simplified if causing issues.
                   size: entry.object ? entry.object.byteSize : undefined,
+                  isDir: entry.type === 'tree',
                 }))
             : [];
 

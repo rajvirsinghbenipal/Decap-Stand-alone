@@ -10,8 +10,8 @@ public_folder: "assets/uploads"
 # --- END OF FIX ---
 
 collections:
-  - label: "Blog in English"
-    name: "english_posts"
+  - label: "post"
+    name: "news"
     folder: "news"
     create: true
     filter: { field: "language", value: "en" }
