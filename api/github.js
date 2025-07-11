@@ -5,7 +5,7 @@ const REPO_OWNER = "rajvir-cms-bot";
 const REPO_NAME = "hugo-content";
 const REPO_NAME_WITH_OWNER = `${REPO_OWNER}/${REPO_NAME}`;
 
-// --- Reusable helper function to make GraphQL requests ---
+// --- Reusable helper function ---
 async function makeGraphQLRequest(query, variables = {}) {
   const response = await fetch(GITHUB_API_URL, {
     method: "POST",
@@ -15,10 +15,7 @@ async function makeGraphQLRequest(query, variables = {}) {
       "Content-Type": "application/json",
       Accept: "application/json",
     },
-    body: JSON.stringify({
-      query,
-      variables,
-    }),
+    body: JSON.stringify({ query, variables }),
   });
 
   const data = await response.json();
@@ -36,7 +33,7 @@ async function makeGraphQLRequest(query, variables = {}) {
   return data.data;
 }
 
-// --- Main proxy handler ---
+// --- Main handler ---
 module.exports = async (req, res) => {
   const { action, params } = req.body;
 
@@ -81,24 +78,18 @@ module.exports = async (req, res) => {
           };
 
           const data = await makeGraphQLRequest(query, variables);
+          const entries = data.repository.object?.entries || [];
 
-          const treeObject = data.repository.object;
-          const entries = treeObject ? treeObject.entries : null;
-
-          // --- FINAL FIX: Simplify the mapping to only required fields ---
           const files = entries
-            ? entries
-                .filter((entry) => entry)
-                .map((entry) => ({
-                  // Decap CMS requires a 'path' and a 'name'. 'sha' and 'id' are also used.
-                  path: entry.path,
-                  name: entry.name,
-                  id: entry.oid,
-                  sha: entry.oid,
-                  // The 'size' and 'type' fields are useful but can be simplified if causing issues.
-                  size: entry.object ? entry.object.byteSize : undefined,
-                }))
-            : [];
+            .filter((entry) => entry && entry.type === "blob")
+            .map((entry) => ({
+              path: entry.path,
+              name: entry.name,
+              id: entry.oid,
+              sha: entry.oid,
+              size: entry.object?.byteSize,
+              slug: entry.name.replace(/\.md$/, ""),
+            }));
 
           res.status(200).json(files);
         }
@@ -127,12 +118,15 @@ module.exports = async (req, res) => {
           };
 
           const data = await makeGraphQLRequest(query, variables);
-
           const fileData = data.repository.object;
+
           if (!fileData) {
             res.status(404).json({ message: "File not found." });
             return;
           }
+
+          const filename = params.path.split("/").pop();
+          const slug = filename.replace(/\.md$/, "");
 
           res.status(200).json({
             id: fileData.oid,
@@ -140,6 +134,8 @@ module.exports = async (req, res) => {
             content: Buffer.from(fileData.text).toString("base64"),
             path: params.path,
             size: fileData.byteSize,
+            name: filename,
+            slug: slug,
           });
         }
         break;
@@ -147,6 +143,7 @@ module.exports = async (req, res) => {
       case "persistEntry":
         {
           const file = params.dataFiles[0];
+
           const queryGetOID = `
             query getBranchOID($owner: String!, $repo: String!, $branch: String!) {
               repository(owner: $owner, name: $repo) {
@@ -235,12 +232,17 @@ module.exports = async (req, res) => {
             return;
           }
 
+          const filename = file.path.split("/").pop();
+          const slug = filename.replace(/\.md$/, "");
+
           res.status(200).json({
             id: savedFileData.oid,
             sha: savedFileData.oid,
             content: Buffer.from(savedFileData.text).toString("base64"),
             path: file.path,
             size: savedFileData.byteSize,
+            name: filename,
+            slug: slug,
           });
         }
         break;

@@ -1,26 +1,27 @@
 backend:
   name: proxy
   proxy_url: http://localhost:3000/api/github
-  branch: main # Or pre-release, whichever you are using
+  branch: main
 
-# --- THIS IS THE FIX ---
-# You must specify BOTH media_folder and public_folder.
 media_folder: "assets/uploads"
 public_folder: "assets/uploads"
-# --- END OF FIX ---
 
 collections:
   - label: "Blog in English"
     name: "english_posts"
     folder: "news"
     create: true
-    filter: { field: "language", value: "en" }
+    extension: "md"
+    format: "frontmatter"
+    slug: "{{filename}}"
+    identifier_field: "title"
     fields:
       - {
           label: "Language",
           name: "language",
           widget: "select",
           options: ["en", "es"],
+          default: "en"
         }
       - { label: "Title", name: "title", widget: "string" }
       - { label: "Content", name: "body", widget: "markdown" }
